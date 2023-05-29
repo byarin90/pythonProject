@@ -3,8 +3,9 @@ from flask import Flask,jsonify,request
 from pymongo import MongoClient
 from bcrypt import hashpw,gensalt,checkpw
 from bson.objectid import ObjectId
-from flask_jwt_extended import JWTManager, create_access_token
+from flask_jwt_extended import JWTManager, create_access_token,jwt_required, get_jwt_identity
 from datetime import timedelta
+
 
 
 
@@ -17,6 +18,7 @@ try:
     print("MongoDB Connect")
 except Exception:
     print("Unable to connect MongoDB")
+
 
 
 @app.route('/',methods=['GET'])
@@ -59,13 +61,18 @@ def login():
 
 #READ
 @app.route('/users',methods=['GET'])
+@jwt_required()
 def get_users():
     users = db.users.find({})
+    # How to get the payload
+    payload = get_jwt_identity()
+
     user_list = [{
         "id": str(user['_id']),
         "email": user["email"],
         "password": user["password"],
-        "name": user["name"]
+        "name": user["name"],
+        "payload":payload
     } for user in users]
     return jsonify(user_list)
 
@@ -76,6 +83,7 @@ def get_users():
 @app.route('/users',methods=['POST'])
 def add_user():
     body = request.json
+
     required_keys = {"name", "email","password"}
     # check if there's any invalid key in the request body
     if set(body.keys()) != required_keys:
