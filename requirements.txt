@@ -12,3 +12,4 @@ packaging==23.1
 PyJWT==2.7.0
 pymongo==4.3.3
 Werkzeug==2.3.4
+shalom
